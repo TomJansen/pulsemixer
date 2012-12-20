@@ -9,20 +9,30 @@ Also there is no built-in maximum volume so use it with caution!
 
 ## Usage
 
+Use keybindings in terminal
+
 This is how it looks on my machine:
 
-    [   0.00 dB] High Definition Audio Controller Digital Stereo (HDMI)   
-    [  -0.81 dB] Built-in Audio Analog Stereo
-    [  -5.27 dB] Quod Libet : 'I'll Never Know' by 'KID'
-    [ -15.23 dB] VLC media player : audio stream
-    [  -0.81 dB] ALSA plug-in [chromium] : ALSA Playback
+     arrow keys - navigate and adjust volume
+              n - set volume to 0.00 dB
+              m - mute
+              q - quit
 
-Change selection with `j`,`k` keys. To change the volume use `h` and `l`, hold shift for fine tuning.
-Press `m` to set the volume to -inf dB (0%) and `n` to set it to 0.0 dB (100%).
+    [   0.00 dB] High Definition Audio Controller Digital Stereo (HDMI)            
+    [  -9.29 dB] Built-in Audio Analog Stereo
+    [  -1.22 dB] VLC media player : audio stream
+    [   0.00 dB] Spotify : Spotify
 
-## Building
+
+## Install
 
 To compile you need libncurses and libpulse. Then just run
 
     $ cd src/
     $ make
+    $ sudo make install
+
+## Recommended
+
+To get independent volume controls of sink output and attached clients set `flat-volumes = no` in `/etc/pulse/daemon.conf`.
+This is the default setting in Ubuntu 12.10.

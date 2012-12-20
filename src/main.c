@@ -3,18 +3,20 @@
 #include <string.h>
 #include <pulse/pulseaudio.h>
 #include <sys/select.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "model.h"
 #include "view.h"
 
 typedef enum {
-    VOL_UP_FINE,
-    VOL_DOWN_FINE,
     VOL_UP,
     VOL_DOWN,
     VOL_NORM,
     VOL_MUTE
 } vol_change_t;
+
+int running = 1;
 
 void on_client_update(pa_context *c, const pa_client_info * info, int eol, void *userdata)
 {
@@ -102,28 +104,32 @@ void on_event(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void 
 
 pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
 {
+    pa_volume_t vol_new = vol;
+
     switch(vol_change) {
-        case VOL_DOWN_FINE:
-            if (vol < 500)
-                return PA_VOLUME_MUTED;
-            else
-                return vol - 500;
-        case VOL_UP_FINE:
-            return vol + 500;
-        case VOL_DOWN:
-            if (vol < 2000)
-                return PA_VOLUME_MUTED;
-            else
-                return vol - 2000;
-            break;
         case VOL_UP:
-            return vol + 2000;
+            vol_new += 500;
+            break;
+        case VOL_DOWN:
+            vol_new -= 500;
             break;
         case VOL_MUTE:
-            return PA_VOLUME_MUTED;
+            vol_new = PA_VOLUME_MUTED;
+            break;
         default:
-            return PA_VOLUME_NORM;
+        case VOL_NORM:
+            vol_new = PA_VOLUME_NORM;
     }
+
+    pa_volume_t my_max_vol = 2 * PA_VOLUME_NORM;
+
+    if(vol_new < PA_VOLUME_MUTED)
+        vol_new = PA_VOLUME_MUTED;
+    if(vol_new > my_max_vol)
+        vol_new = my_max_vol;
+    if(vol_new > PA_VOLUME_MAX)
+        vol_new = PA_VOLUME_MAX;
+    return vol_new;
 }
 
 void change_sel_vol(pa_context * c, vol_change_t vol_change)
@@ -160,6 +166,15 @@ void pa_state_changed(pa_context *c, void *userdata) {
     *pa_state = pa_context_get_state(c);
 }
 
+/*
+void handle_sig_int(int signo) {
+    if(signo == SIGINT) {
+        //printf("SIGINT!");
+        running = 0;
+    }
+}
+*/
+
 int main(int argc, char **argv)
 {
     int retval = 0;
@@ -174,10 +189,18 @@ int main(int argc, char **argv)
     pa_context_connect(context, NULL, 0, NULL);
     pa_context_set_state_callback(context, pa_state_changed, &pa_state);
 
-    int running = 1;
+    /*
+    struct sigaction sigint_handler;
+    sigint_handler.sa_handler = handle_sig_int;
+    sigemptyset(&sigint_handler.sa_mask);
+    sigint_handler.sa_flags = 0;
+    sigaction(SIGINT, &sigint_handler, NULL);
+    */
+
     int init_done = 0;
 
     initscr();
+    keypad(stdscr, TRUE);
     start_color();
     curs_set(0);
     cbreak();
@@ -218,45 +241,38 @@ int main(int argc, char **argv)
         if(r == 0) {
             /* timeout */
             pa_mainloop_iterate(ml, 0, NULL);
-            /*
-            wprintw(stdscr, "timeout!");
-            refresh();
-            */
         }
         if(FD_ISSET(0, &test_set)) {
             /* stdin ready */
 
-            int key = wgetch(stdscr);
-            /*
-            printf("key %d!\n", key);
-            fflush(stdout);
-            */
+            int key = getch();
             switch(key) {
-                case 'k':
+                case KEY_UP:
                     view_select_prev();
                     view_show();
                     break;
-                case 'j':
+                case KEY_DOWN:
                     view_select_next();
                     view_show();
                     break;
-                case 'h':
+                case KEY_LEFT:
                     change_sel_vol(context, VOL_DOWN);
                     break;
-                case 'H':
-                    change_sel_vol(context, VOL_DOWN_FINE);
-                    break;
-                case 'l':
+                case KEY_RIGHT:
                     change_sel_vol(context, VOL_UP);
-                    break;
-                case 'L':
-                    change_sel_vol(context, VOL_UP_FINE);
                     break;
                 case 'n':
                     change_sel_vol(context, VOL_NORM);
                     break;
                 case 'm':
                     change_sel_vol(context, VOL_MUTE);
+                    break;
+                case 'q':
+                    running = 0;
+                    break;
+                case KEY_RESIZE:
+                    view_show();
+                    refresh();
                     break;
             }
         }
@@ -266,6 +282,8 @@ int main(int argc, char **argv)
     pa_context_disconnect(context);
     pa_context_unref(context);
     pa_mainloop_free(ml);
+
+    endwin();
 
     return retval;
 }

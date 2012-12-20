@@ -57,7 +57,7 @@ void view_show()
     char line[VIEW_WIDTH+1];
     clear();
 
-    sprintf(line, "Use h,j,k,l,m,n keys, +shift to fine-tune.");
+    sprintf(line, "\n arrow keys - navigate and adjust volume\n          n - set volume to 0.00 dB\n          m - mute\n          q - quit");
 
     mvwprintw(stdscr, 0, 0,  line);
     int i;
@@ -93,7 +93,7 @@ void view_show()
         } else {
             attroff(COLOR_PAIR(2));
         }
-        mvwprintw(stdscr, 2+i, 0,  line);
+        mvwprintw(stdscr, 6+i, 0,  line);
         attroff(COLOR_PAIR(2));
     }
     refresh();
