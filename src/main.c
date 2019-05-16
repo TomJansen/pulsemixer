@@ -105,13 +105,15 @@ void on_event(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void 
 pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
 {
     int vol_new = vol;
+    int my_max_vol = 1.5 * PA_VOLUME_NORM;
+    int vol_step = PA_VOLUME_NORM/100;
 
     switch(vol_change) {
         case VOL_UP:
-            vol_new += 655.36;
+            vol_new += vol_step;
             break;
         case VOL_DOWN:
-            vol_new -= 655.36;
+            vol_new -= vol_step;
             break;
         case VOL_MUTE:
             vol_new = PA_VOLUME_MUTED;
@@ -121,7 +123,6 @@ pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
             vol_new = PA_VOLUME_NORM;
     }
 
-    pa_volume_t my_max_vol = 2 * PA_VOLUME_NORM;
 
     if(vol_new < 0)
         vol_new = PA_VOLUME_MUTED;
