@@ -57,7 +57,7 @@ void view_show()
     char line[VIEW_WIDTH+1];
     clear();
 
-    sprintf(line, "\n arrow keys - navigate and adjust volume\n          n - set volume to 0.00 dB\n          m - mute\n          q - quit");
+    sprintf(line, "\n arrow keys - navigate and adjust volume\n          n - set volume to 100%%\n          m - mute\n          q - quit");
 
     mvwprintw(stdscr, 0, 0,  line);
     int i;
@@ -69,13 +69,14 @@ void view_show()
         if(view_entry.type == VIEW_SINK) {
             sink_t * sink = (sink_t *) view_entry.ref;
             pa_volume_t volume_avg = pa_cvolume_avg(&sink->volume);
-            sprintf(line, "[%7.2f dB] %s", pa_sw_volume_to_dB(volume_avg), sink->description);
+	    float volume_percentage = (volume_avg/(float) PA_VOLUME_NORM)*100;
+            sprintf(line, "[%.0f %%] %s", volume_percentage, sink->description);
         }
         if(view_entry.type == VIEW_SINK_INPUT) {
             sink_input_t * sink_input = (sink_input_t *) view_entry.ref;
-            pa_volume_t volume_avg;
-            volume_avg = pa_cvolume_avg(&sink_input->volume);
-            sprintf(line, "[%7.2f dB] %s : %s", pa_sw_volume_to_dB(volume_avg), sink_input->client_name, sink_input->name);
+            pa_volume_t volume_avg = pa_cvolume_avg(&sink_input->volume);
+	    float volume_percentage = (volume_avg/(float) PA_VOLUME_NORM)*100;
+            sprintf(line, "[%.0f %%] %s : %s", volume_percentage, sink_input->client_name, sink_input->name);
         }
 
         // pad string with spaces

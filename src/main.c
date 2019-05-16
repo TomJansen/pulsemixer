@@ -25,7 +25,7 @@ void on_client_update(pa_context *c, const pa_client_info * info, int eol, void 
     } else {
         sink_input_t * sink_input = sink_input_by_client_index(info->index);
         if(sink_input != NULL) {
-            free(sink_input->client_name); 
+            free(sink_input->client_name);
             sink_input->client_name = strdup(info->name);
         }
     }
@@ -53,7 +53,7 @@ void on_sink_input_update(pa_context * c, const pa_sink_input_info * info, int e
                 }
             }
         }
-    } 
+    }
 }
 
 void on_sink_update(pa_context * c, const pa_sink_info * info, int eol, void * userdata)
@@ -104,14 +104,14 @@ void on_event(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void 
 
 pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
 {
-    pa_volume_t vol_new = vol;
+    int vol_new = vol;
 
     switch(vol_change) {
         case VOL_UP:
-            vol_new += 500;
+            vol_new += 655.36;
             break;
         case VOL_DOWN:
-            vol_new -= 500;
+            vol_new -= 655.36;
             break;
         case VOL_MUTE:
             vol_new = PA_VOLUME_MUTED;
@@ -123,7 +123,7 @@ pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
 
     pa_volume_t my_max_vol = 2 * PA_VOLUME_NORM;
 
-    if(vol_new < PA_VOLUME_MUTED)
+    if(vol_new < 0)
         vol_new = PA_VOLUME_MUTED;
     if(vol_new > my_max_vol)
         vol_new = my_max_vol;
