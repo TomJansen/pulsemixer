@@ -104,7 +104,7 @@ void on_event(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void 
 
 pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
 {
-    pa_volume_t vol_new = vol;
+    int vol_new = vol;
 
     switch(vol_change) {
         case VOL_UP:
