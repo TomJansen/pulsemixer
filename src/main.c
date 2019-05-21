@@ -123,7 +123,7 @@ pa_volume_t modify_volume(pa_volume_t vol, vol_change_t vol_change)
 
     pa_volume_t my_max_vol = 2 * PA_VOLUME_NORM;
 
-    if(vol_new < PA_VOLUME_MUTED)
+    if(vol_new < 0)
         vol_new = PA_VOLUME_MUTED;
     if(vol_new > my_max_vol)
         vol_new = my_max_vol;
